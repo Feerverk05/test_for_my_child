@@ -1,16 +1,23 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, RotateCcw, BookOpen, Star, Book, Trophy } from 'lucide-react';
 
+type TheoryItem = { t: string; txt: string; code: string };
+type Question = { q: string; opts: string[]; ans: number; exp: string; code?: string; star?: boolean };
+type Lesson = { title: string; icon: string; theory: TheoryItem[]; questions: Question[] };
+type LessonsMap = Record<string, Lesson>;
+type CompletedResult = { score: number; starScore: number; total: number; percentage: number; date: string };
+type CompletedLessonsMap = Record<string, CompletedResult>;
+
 export default function JSTrainer() {
-  const [selectedLesson, setSelectedLesson] = useState(null);
+  const [selectedLesson, setSelectedLesson] = useState<string | null>(null);
   const [showTheory, setShowTheory] = useState(true);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [starScore, setStarScore] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [completedLessons, setCompletedLessons] = useState({});
-  const [shuffledQuestions, setShuffledQuestions] = useState([]);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [completedLessons, setCompletedLessons] = useState<CompletedLessonsMap>({});
+  const [shuffledQuestions, setShuffledQuestions] = useState<Question[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem('jsTrainerResults');
@@ -29,7 +36,7 @@ export default function JSTrainer() {
     }
   }, [completedLessons]);
 
-  const shuffle = (array) => {
+  const shuffle = <T,>(array: T[]): T[] => {
     const arr = [...array];
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -38,7 +45,7 @@ export default function JSTrainer() {
     return arr;
   };
 
-  const lessons = {
+  const lessons: LessonsMap = {
     lesson1: {
       title: 'Урок 1: Типи даних та об\'єкти',
       icon: '📦',
@@ -216,7 +223,7 @@ export default function JSTrainer() {
     }
   }, [selectedLesson, showTheory]);
 
-  const handleAnswer = (idx) => {
+  const handleAnswer = (idx: number) => {
     if (showAnswer) return;
     setSelectedAnswer(idx);
     setShowAnswer(true);
@@ -232,7 +239,7 @@ export default function JSTrainer() {
       setCurrentQuestion(currentQuestion + 1);
       setShowAnswer(false);
       setSelectedAnswer(null);
-    } else {
+    } else if (selectedLesson) {
       setCompletedLessons({
         ...completedLessons,
         [selectedLesson]: {
@@ -258,7 +265,7 @@ export default function JSTrainer() {
   if (!selectedLesson) {
     const total = Object.keys(lessons).length;
     const done = Object.keys(completedLessons).length;
-    const stars = Object.values(completedLessons).reduce((s, l) => s + (l.starScore || 0), 0);
+    const stars: number = Object.values(completedLessons).reduce((s, l) => s + (l.starScore || 0), 0);
 
     return (
       <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 to-indigo-100 p-4 md:p-8">
@@ -296,7 +303,7 @@ export default function JSTrainer() {
           <div className="grid md:grid-cols-3 gap-6">
             {Object.entries(lessons).map(([key, lesson]) => {
               const comp = completedLessons[key];
-              const starC = lesson.questions.filter(q => q.star).length;
+              const starC = lesson.questions.filter((q: Question) => q.star).length;
               return (
                 <div key={key} onClick={() => setSelectedLesson(key)} className="bg-white rounded-xl shadow-lg p-6 cursor-pointer hover:scale-105 transition">
                   <div className="flex items-start justify-between mb-4">
@@ -350,7 +357,7 @@ export default function JSTrainer() {
             </div>
 
             <div className="space-y-6">
-              {lesson.theory.map((item, i) => (
+              {lesson.theory.map((item: TheoryItem, i: number) => (
                 <div key={i} className="border-l-4 border-blue-500 pl-4">
                   <h3 className="text-lg font-bold text-gray-800 mb-2">{item.t}</h3>
                   <p className="text-gray-700 mb-3">{item.txt}</p>
@@ -406,7 +413,7 @@ export default function JSTrainer() {
             {q.code && <pre className="bg-gray-900 text-green-400 p-4 rounded-lg mb-6 overflow-x-auto text-sm"><code>{q.code}</code></pre>}
 
             <div className="space-y-3">
-              {q.opts.map((opt, i) => {
+              {q.opts.map((opt: string, i: number) => {
                 const sel = selectedAnswer === i;
                 const cor = i === q.ans;
                 let cls = "w-full text-left p-4 rounded-lg border-2 transition-all ";
